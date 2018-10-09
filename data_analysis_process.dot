@@ -1,0 +1,19 @@
+digraph data_analysis {
+      
+      graph [compound = true, rankdir = LR, fontname = "Meiryo UI"]
+      
+      node [shape = none, fontname = "Meiryo UI"]
+      
+      edge [color = grey]
+      
+      subgraph cluster0 {
+        label = "探索的プロセス"
+        labelloc = "b"
+        データ変換 -> 可視化 -> モデル化 -> データ変換
+      }
+      
+      データ読込 -> データ整形
+      データ整形-> データ変換
+      モデル化 -> コミュニケーション [ltail = cluster0]
+
+}
