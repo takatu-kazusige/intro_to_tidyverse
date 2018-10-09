@@ -1,0 +1,73 @@
+2018.10.09
+
+RマークダウンからPDF文書を作成する方法
+
+＜目的＞
+Rマークダウンから自動生成される文書フォーマットには各種あるが、章番号や図表番号の自動採番はPDF文書しか対応していない。また、PDF以外のプレゼン用フォーマットは印刷に難がある（その分インタラクティブにできるなどのメリットがある）。
+しかしRStudioにすでに組み込まれているHTMLやWordと違って、PDFを作るには準備が必要だ。
+それは、高品質なPDFを作るために内部でLaTeXを使う方法(*)を取っているが、RStudioには組み込まれておらずユーザが別途インストールする必要があるからだ。
+*：RmdからLaTeXのソースが自動生成され、LaTeXを使って文書が生成される。
+
+LaTeXを使ったことのある人ならばインストールに手間がかかった覚えのある人も多いだろう。
+
+そこで、なるべく最短で環境を整えられるよう、インストール手順をまとめておく。
+
+＜手順＞
+(0) IPAフォントのインストール
+後からでもTeXのフォント情報更新を行えば問題ないが、できれば事前にIPAフォントをインストールする。
+以下からダウンロードし、解凍したフォントファイルを右クリックメニューからインストールする。
+https://ipafont.ipa.go.jp/old/ipafont/download.html
+
+(1) LaTeXのインストール
+TeXシステムには沢山の種類があるが、全体で見てなるべく環境設定が容易なものを選びたい。
+調べてみた中では、MikTeXがよいようだ。
+
+まず、以下からインストーラをダウンロードして普通にインストールできるのがいい。
+https://miktex.org/download
+
+次に、管理ツールで必要な環境設定を行えて楽である。
+
+必要な設定は、ネットワーク設定とパッケージのアップデート、フォントの情報更新、追加パッケージのインストールである。
+Updates -> Change -> Connection Settings -> "Use a proxy server"をチェック -> IPアドレスを入力 -> "OK" -> "Next" -> プロトコルがHTTP、HTTPSのサーバを選ぶ -> "Finish"
+Updates -> Ckeck for updates -> Update now
+Tasks -> Refresh font map files
+Packages -> "mathspec"を入力 -> パッケージ名を選択 -> "+" -> "close"
+
+(2) Rマークダウンファイルの編集 その1
+ヘッダ部に、必要応じて以下を追加する。
+
+header-includes:               # LaTeXの設定
+  - \usepackage{float}         # 図の位置を指定する方法を用意する
+  - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
+  - \usepackage{xltxtra}       # Unicode処理するために必要なもの
+  - \usepackage{zxjatype}      # XeLaTeX で日本語の標準的な組版を行う
+  - \usepackage[ipa]{zxjafont} # IPAフォントを使う
+  - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
+output:
+  pdf_document:
+    # toc: true                # 目次作成
+    number_sections: true      # 章番号作成
+    fig_caption: true          # 図キャプション作成
+    latex_engine: xelatex      # TeX種類を指定
+    keep_tex: yes              # TeXソースを残す
+  html_document:
+    df_print: paged            # データフレームをページ対応表示する
+  word_document:
+    fig_caption: true          # 図キャプション作成
+lang: ja                       # 言語環境を指定
+
+(3) Rマークダウンファイルの編集 その2
+設定用のRコード部に、以下を追加する。これは、PDF作成に限らず必要。
+
+# ggplotグラフで日本語を使えるようにする
+old <- theme_set(theme_gray(base_family = "Japan1Ryumin"))
+
+# baseグラフで日本語を使えるようにする
+par(family = "Japan1Ryumin")
+
+# 表出力用に、数値の有効桁数を限定する
+options(digits = 5)
+
+
+
+
