@@ -7,14 +7,14 @@ header-includes:               # LaTeXの設定
   - \usepackage{zxjatype}      # XeLaTeX で日本語の標準的な組版を行う
   - \usepackage[ipa]{zxjafont} # IPAフォントを使う
 output:
-  slidy_presentation: 
-    fig_caption: false         # 図キャプション作成
   beamer_presentation: 
     toc: true                  # 目次作成
     incremental: true          # 
+    fig_caption: true          # 図キャプション作成
     latex_engine: xelatex      # TeX種類を指定
     keep_tex: yes              # TeXソースを残す
     #number_sections: true     # 章番号作成
+  slidy_presentation: default
 lang: ja                       # 言語環境を指定
 ---
 
@@ -27,7 +27,7 @@ library(tidyverse)
 library(broom)
 
 # ggplotグラフで日本語を使えるようにする
-old <- theme_set(theme_bw(base_family = "Japan1Ryumin"))
+old <- theme_set(theme_gray(base_family = "Japan1Ryumin"))
 
 # baseグラフで日本語を使えるようにする
 par(family = "Japan1Ryumin")
@@ -42,7 +42,7 @@ options(digits = 5)
 1回データ処理して終了することはあまりなく、多くの場合は仮説→検証を繰り返して適切な結果を得ることができます。
 ここではRの可視化処理を使って、その簡単な例を示します。
 
-![](data_analysis_process.png)
+![探索的プロセス](data_analysis_process.png)
 
 
 ## 実験データを読み込む
@@ -90,7 +90,7 @@ iris_long %>%
 
 比較的よい相関があるようですが、よく見てみると、どの種でもガクの方が大きいようです。  
 
-```{r 1st_plot, echo=FALSE, eval=TRUE}
+```{r 1st_plot, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="最初の可視化"}
 ```
 
 ## 仮説その1
@@ -112,7 +112,7 @@ iris_long %>%
 よい相関があるので、仮説は妥当だったようです。
 更に見てみると、近似直線の傾きがどれも似ているようです。
 
-```{r theory_1, echo=FALSE, eval=TRUE}
+```{r theory_1, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="長さと幅の関係"}
 ```
 
 ## 仮説その2
@@ -132,7 +132,7 @@ iris_long %>%
 
 95%信頼区間（グレーの領域）を考慮すると、同じ傾きである可能性は高そうです。
 
-```{r theory_2, echo=FALSE, eval=TRUE}
+```{r theory_2, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="傾きの比較"}
 ```
 
 ## 線形モデルの結果を数値で取得する
@@ -146,8 +146,7 @@ lm_coef <- iris_long %>%
   summarise(list(lm(Length ~ Width) %>% tidy())) %>% 
   unnest()
 ```
-```{r, echo=FALSE, fig.height=2, fig.width=5, out.height='300px', out.width='750px'}
-# %指定だと、出力サイズで拡大することができなかった。
+```{r, echo=FALSE, fig.height=2.2, fig.width=5, out.height='30%', fig.cap="線形モデル係数"}
 lm_coef %>% ggtexttable(rows = NULL, theme = ggpubr::ttheme("mBlue")) %>% 
   table_cell_bg(color = "red", linewidth = 2, column = 3, row = 3) %>%
   table_cell_bg(color = "red", linewidth = 2, column = 3, row = 5) %>% 
@@ -188,8 +187,7 @@ lm_coef_ci <- iris_long %>%
 
 その結果は以下のようになり、傾きが同一である可能性があるといえます。
 
-```{r, echo=FALSE, fig.height=1.2, fig.width=2.2, out.height='240px', out.width='440px'}
-# %指定だと、出力サイズで拡大することができなかった。
+```{r, echo=FALSE, fig.height=1.2, fig.width=2.2, out.height='40%', fig.cap="傾きの信頼区間"}
 lm_coef_ci %>% ggtexttable(rows = NULL, theme = ggpubr::ttheme("mBlue"))
 ```
 
@@ -218,7 +216,7 @@ p2 <- lm_resid %>%
 
 説明変数（Width）に対して残差のバラツキはほぼ均等のようですし、残差の分布も偏っていないようなので、問題ないでしょう。
 
-```{r check_lm, echo=FALSE, eval=TRUE}
+```{r check_lm, echo=FALSE, eval=TRUE, fig.height=3, fig.width=4, out.height='60%', fig.cap="残差プロット"}
 plot_grid(p1, p2, ncol = 1)
 ```
 

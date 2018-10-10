@@ -68,6 +68,15 @@ par(family = "Japan1Ryumin")
 # 表出力用に、数値の有効桁数を限定する
 options(digits = 5)
 
+(4) Rマークダウンファイルの編集 その3
+
+図のサイズを指定するときは、out.widthとout.heightにピクセル(px)で指定してはいけない。（PDF出力の場合の制約で、HTML出力ではOK。ただし、%指定だと拡大できないようなので注意。）
+LeTeXが扱えない単位としてエラーになる。%指定するのがいい。
+例
+```{r 1st_plot, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="最初の可視化"}
+```
+またプレゼン資料の場合、HTML版と比較して図が大きくなるのでソースを共通にできない。
+
 
 
 
