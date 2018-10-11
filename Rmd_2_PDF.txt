@@ -33,17 +33,17 @@ Tasks -> Refresh font map files
 Packages -> パッケージ名を入力 -> パッケージ名を選択 -> "+" -> "close"
     インストールするのは以下のパッケージ。
     mathspec
-    bxjscls
-    zxja*
-    ipaex*
-    bx*
-    beamerで検索して出てくる29個
+    zxja*（3個）
+    ipaex*（2個）
     xltxtra
+    bxjscls
+    (bx*（bxbase、bxcalc、bxjaprmind、bxpict2e、bxjsclsを除く12個）)
+    (beamerで検索して出てくる29個)
 
 (2) Rマークダウンファイルの編集 その1
 ヘッダ部に、必要応じて以下を追加する。
 
----＜★報告書の場合(1)＞-----------------
+---＜★報告書の場合(HTML、WORD、PDF共通＞--
 header-includes:               # LaTeXの設定
   - \usepackage{float}         # 図の位置を指定する方法を用意する
   - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
@@ -59,12 +59,10 @@ output:
     df_print: paged            # データフレームをページ対応表示する
   word_document:
     fig_caption: true          # 図キャプション作成
-documentclass: bxjsreport
+documentclass: bxjsarticle
 classoption: xelatex,ja=standard
 geometry: no
----＜★報告書の場合(2)＞-----------------
-章番号不要なら、documentclass:bxjsarticleにする。
----＜★プレゼン資料(HTML)＞-----------------
+---＜★プレゼン資料(HTML)＞----------------
   slidy_presentation: 
     df_print: paged            # データフレームをページ対応表示する
     toc: false                 # 目次作成
