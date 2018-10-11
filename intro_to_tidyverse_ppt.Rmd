@@ -2,35 +2,29 @@
 title: "Rによる探索的データ分析入門"
 author: "発電基盤開発課 高津一誠"
 date: "2018年10月5日"
-header-includes:               # LaTeXの設定
-  - \usepackage{xltxtra}       # Unicode処理するために必要なもの
-  - \usepackage{zxjatype}      # XeLaTeX で日本語の標準的な組版を行う
-  - \usepackage[ipa]{zxjafont} # IPAフォントを使う
-output:
+output: 
   slidy_presentation: 
-    fig_caption: false         # 図キャプション作成
-  beamer_presentation: 
-    toc: true                  # 目次作成
-    incremental: true          # 
-    latex_engine: xelatex      # TeX種類を指定
-    keep_tex: yes              # TeXソースを残す
-    #number_sections: true     # 章番号作成
-lang: ja                       # 言語環境を指定
+    df_print: paged            # データフレームをページ対応表示する
+    toc: false                 # 目次作成
+    number_sections: false     # 章番号作成
+  ioslides_presentation: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.align="center")
-
+library(knitr)
 library(ggpubr)
 library(cowplot)
 library(tidyverse)
 library(broom)
 
+# Rコード部の設定
+knitr::opts_chunk$set(echo = T, fig.align="center", warning = F)
+
 # ggplotグラフで日本語を使えるようにする
-old <- theme_set(theme_bw(base_family = "Japan1Ryumin"))
+old <- theme_set(theme_bw(base_family = "VL Gothic"))
 
 # baseグラフで日本語を使えるようにする
-par(family = "Japan1Ryumin")
+par(family = "VL Gothic")
 
 # 表出力用に、数値の有効桁数を限定する
 options(digits = 5)
@@ -83,7 +77,7 @@ iris_long %>%
 	geom_point(aes(color = Part)) + 
 	stat_smooth(method = "lm", color = "gray 40") + 
 	facet_grid(Part ~ Species) +
-	labs(x = "Width(cm)", y = "Length(cm)")
+	labs(x = "幅(cm)", y = "長さ(cm)", color = "部位")
 ```
 
 ## 可視化する

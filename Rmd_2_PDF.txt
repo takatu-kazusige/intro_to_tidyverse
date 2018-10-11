@@ -13,10 +13,9 @@ LaTeXを使ったことのある人ならばインストールに手間がかか
 そこで、なるべく最短で環境を整えられるよう、インストール手順をまとめておく。
 
 ＜手順＞
-(0) IPAフォントのインストール
-後からでもTeXのフォント情報更新を行えば問題ないが、できれば事前にIPAフォントをインストールする。
-以下からダウンロードし、解凍したフォントファイルを右クリックメニューからインストールする。
-https://ipafont.ipa.go.jp/old/ipafont/download.html
+(0) VL ゴシックフォントのインストール
+図の日本語用に使いたいときは以下からダウンロードして、解凍したフォントファイルを右クリック、インストールする。
+http://vlgothic.dicey.org/
 
 (1) LaTeXのインストール
 TeXシステムには沢山の種類があるが、全体で見てなるべく環境設定が容易なものを選びたい。
@@ -31,10 +30,109 @@ https://miktex.org/download
 Updates -> Change -> Connection Settings -> "Use a proxy server"をチェック -> IPアドレスを入力 -> "OK" -> "Next" -> プロトコルがHTTP、HTTPSのサーバを選ぶ -> "Finish"
 Updates -> Ckeck for updates -> Update now
 Tasks -> Refresh font map files
-Packages -> "mathspec"を入力 -> パッケージ名を選択 -> "+" -> "close"
+Packages -> パッケージ名を入力 -> パッケージ名を選択 -> "+" -> "close"
+    インストールするのは以下のパッケージ。
+    mathspec
+    bxjscls
+    zxja*
+    ipaex*
+    bx*
+    beamerで検索して出てくる29個
+    xltxtra
 
 (2) Rマークダウンファイルの編集 その1
 ヘッダ部に、必要応じて以下を追加する。
+
+---＜★報告書の場合(1)＞-----------------
+header-includes:               # LaTeXの設定
+  - \usepackage{float}         # 図の位置を指定する方法を用意する
+  - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
+  - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
+output:
+  pdf_document:
+    # toc: true                # 目次作成
+    number_sections: true      # 章番号作成
+    fig_caption: true          # 図キャプション作成
+    latex_engine: xelatex      # TeX種類を指定
+    keep_tex: yes              # TeXソースを残す
+  html_document:
+    df_print: paged            # データフレームをページ対応表示する
+  word_document:
+    fig_caption: true          # 図キャプション作成
+documentclass: bxjsreport
+classoption: xelatex,ja=standard
+geometry: no
+---＜★報告書の場合(2)＞-----------------
+章番号不要なら、documentclass:bxjsarticleにする。
+---＜★プレゼン資料(HTML)＞-----------------
+  slidy_presentation: 
+    df_print: paged            # データフレームをページ対応表示する
+    toc: false                 # 目次作成
+    number_sections: false     # 章番号作成
+  ioslides_presentation: default
+---＜↓プレゼン資料(PDF)＞-----------------
+header-includes:               # LaTeXの設定
+  - \usepackage{xltxtra}       # Unicode処理するために必要なもの
+  - \usepackage{zxjatype}      # XeLaTeX で日本語の標準的な組版を行う
+  - \usepackage[ipa]{zxjafont} # IPAフォントを使う
+output:
+  beamer_presentation: 
+    latex_engine: xelatex      # TeX種類を指定
+    keep_tex: yes              # TeXソースを残す
+    toc: true                  # 目次作成
+    fig_caption: true          # 図キャプション作成
+    # number_sections: false     # 章番号作成
+documentclass: beamer
+classoption: xelatex,ja=standard
+geometry: no
+mainfont: "IPAPGothic"
+monofont: "IPAGothic"
+
+(3) Rマークダウンファイルの編集 その2
+設定用のRコード部に、以下を追加する。これは、PDF作成に限らず必要。
+
+library(knitr)
+library(ggpubr)
+library(gridExtra)
+library(tidyverse)
+library(broom)
+
+# グラフ中の日本語の文字化け対策
+#   出力フォーマットがPDF(TeX)の場合のみ実行される
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") %in% c("beamer", "latex")) {
+  options(device = function(file, width = 7, height = 7, ...) {
+    cairo_pdf(tempfile(), width = width, height = height, ...)
+  })
+  knitr::opts_chunk$set(dev="cairo_pdf", dev.args=list(family="VL Gothic"))
+}
+
+# Rコード部の設定
+knitr::opts_chunk$set(echo = T, fig.align="center", warning = F)
+
+# ggplotグラフで日本語を使えるようにする
+old <- theme_set(theme_bw(base_family = "VL Gothic"))
+
+# baseグラフで日本語を使えるようにする
+par(family = "VL Gothic")
+
+# 表出力用に、数値の有効桁数を限定する
+options(digits = 5)
+
+(4) Rマークダウンファイルの編集 その3
+
+図のサイズを指定するときは、out.widthとout.heightにピクセル(px)で指定してはいけない。（PDF出力の場合の制約で、HTML出力ではOK。ただし、%指定だと拡大できないようなので注意。）
+LeTeXが扱えない単位としてエラーになる。
+例
+```{r 1st_plot, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="最初の可視化"}
+```
+またプレゼン資料用PDFは、HTML版と比較して図が大きくなるので調整が必要。
+
+以上
+
+===============================
+Windwosのワーニングに取り組む前の古いヘッダ
+===============================
+組版の処理が必要最低限だと思うので、これはもう使わない。
 
 header-includes:               # LaTeXの設定
   - \usepackage{float}         # 図の位置を指定する方法を用意する
@@ -56,27 +154,123 @@ output:
     fig_caption: true          # 図キャプション作成
 lang: ja                       # 言語環境を指定
 
-(3) Rマークダウンファイルの編集 その2
-設定用のRコード部に、以下を追加する。これは、PDF作成に限らず必要。
 
-# ggplotグラフで日本語を使えるようにする
-old <- theme_set(theme_gray(base_family = "Japan1Ryumin"))
+===============================
+Windowsで図の日本語化ができない
+===============================
 
-# baseグラフで日本語を使えるようにする
-par(family = "Japan1Ryumin")
+図の日本語化が、Linuxではうまく動くようになったが、Windowsではうまくいかない。
 
-# 表出力用に、数値の有効桁数を限定する
-options(digits = 5)
+WordやHTMLでは以下のワーニングが大量に発生する。
+----------
+## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+## Windows のフォントデータベースにフォントファミリが見付かりません
+----------
 
-(4) Rマークダウンファイルの編集 その3
+PDFでは以下のエラーが出ることがあったが、KnitのキャッシュとRの出力をクリアしてRStudioを再起動してから実行したらエラーが起きなかった。しかし、PDFを見てみるとなぜか日本語の部分が英語になっていた！（キャッシュがクリアできていないのか？→コードが間違っていただけだった。）
+----------
+Output created: intro_to_tidyverse_ppt_pdf.pdf
+ tools::file_path_as_absolute(output_file) でエラー: 
+  file 'intro_to_tidyverse_ppt_pdf.pdf' does not exist
+ 呼び出し:  <Anonymous> -> <Anonymous>
+ 追加情報:  警告メッセージ: 
+1:  命令 '"xelatex" -halt-on-error -interaction=batchmode "intro_to_tidyverse_ppt_pdf.tex"' の実行は状態 1 を持ちました  
+2:  readLines(logfile) で: 
+   'intro_to_tidyverse_ppt_pdf.log' で不完全な最終行が見つかりました 
+ 実行が停止されました 
+----------
 
-図のサイズを指定するときは、out.widthとout.heightにピクセル(px)で指定してはいけない。（PDF出力の場合の制約で、HTML出力ではOK。ただし、%指定だと拡大できないようなので注意。）
-LeTeXが扱えない単位としてエラーになる。%指定するのがいい。
-例
-```{r 1st_plot, echo=FALSE, eval=TRUE, fig.height=3, fig.width=5, out.height='60%', fig.cap="最初の可視化"}
-```
-またプレゼン資料の場合、HTML版と比較して図が大きくなるのでソースを共通にできない。
+そこで、Rチャンクを実行してみると文字化けしているもののWordやHTMLと同様のワーニングが生じているようだ。さらにRコンソールを見ると以下のワーニングが出ていた。
+----------
+Warning message:
+In strsplit(code, "\n", fixed = TRUE) :
+  input string 1 is invalid in this locale
+$x
+[1] "幅(cm)"
 
+$y
+[1] "長さ(cm)"
+
+$colour
+[1] "部位"
+
+attr(,"class")
+[1] "labels"
+----------
+
+===============================
+BXJS文書クラス+cairo_pdfを使う
+===============================
+
+ここまでやって、前にも確認した以下の記事を読み直してみたら、問題の原因と解決方法がキチンと書いてあった。
+https://qiita.com/naqtn/items/7469a07ea797df5e2ecc
+
+これでWindowsでPDFを作ってみたら、一部だけ豆腐になっていた。これはMikTeXに入っているIPAフォントをWindowsにもインストールしたら直った。これでOKと思ったら、プレゼン用PDFをBeamerで作ろうとすると以下のエラーになる。
+linuxでも同様。（PDFだけしかWindwosでチェックしていなかったので、問題に氣付いていなかった。）
+
+---------
+! Class bxjsarticle Error: Option 'xelatex' used on wrong engine.
+---------
+
+documentclassをbxjsslideだと同様、beamerにすると以下のエラーがでる。UTF-8が
+
+---------
+! Package inputenc Error: Unicode character で (U+3067)
+(inputenc)                not set up for use with LaTeX.
+---------
+
+じゃあ、UTF-8を処理できるようにxltxtraパッケージを指定したら、以下が出た。
+XeLaTeX指定してるのに。
+
+---------
+! 
+ ********************************************
+ * XeTeX is required to compile this document.
+ * Sorry!
+ ********************************************.
+\RequireXeTeX ...********************************}
+                                                  \endgroup \fi 
+l.26 \RequireXeTeX
+
+ エラー: Failed to compile test_ja.tex. See test_ja.log for more info.
+ 実行が停止されました 
+---------
+
+そこで、MikTeXのパッケージをすべて（3GB！）インストールしたが、改善しない。
+
+出力されるコマンドラインを見てみると、以下のようになっている。
+オプションの指定方法が古くなっていることがわかった。
+
+"pandoc_args = - --latex-engine..."の場合：--latex_engine pfdlatexの後に--latex-engine - xelatex
+"latex_engine: xelatex"の場合            ：--latex_engine_xelatexのみ（OK）
+
+しかし、これでも以下のエラーが出る。documentclassがbeamerじゃないとだめなのか？
+
+----------
+! Undefined control sequence.
+<recently read> \setbeamertemplate 
+----------
+
+
+beamer用のYAMLヘッダではdocumentclassにbeamerを指定し、日本語処理できるようパッケージ（xltxtra、zxjatype、zxjafont）を指定する。
+
+いやあ、それでもまだうまくいかない。
+cowplot::plot_gridを使うと、ワーニングが出る。しかたないので、GGally::grid.arrangeを使う。（結局PDF以外ではワーニング無視することにしたので、PDFでも無視することにして、元に戻した。plot_gridの方が使いやすいところがある。）
+
+----------
+## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, :
+## ポストスクリプトフォントのデータベースにフォントファミリ 'VL PGothic' が見
+## 付かりません
+----------
+
+ここまでやってきてWindowsで動かしたら、図が表示されない。HTMLの方を確認したら図はできているが、埋め込み方がおかしい。PDFを埋め込むにはiframeにする必要があるが、imgで埋め込んでいる。これは、cairo_pdfダメってことか？
+じゃあどうするか？
+
+===============================
+結局ワーニングを無視することにした。あ～あ。この数日間の努力は何だったんだ。
+
+通常はワーニング出しといて、最後にレポート作るときにOFFにすればいいや。
+===============================
 
 
 

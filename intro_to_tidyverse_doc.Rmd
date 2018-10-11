@@ -5,11 +5,10 @@ date: "2018年10月5日"
 header-includes:               # LaTeXの設定
   - \usepackage{float}         # 図の位置を指定する方法を用意する
   - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
-  - \usepackage{xltxtra}       # Unicode処理するために必要なもの
-  - \usepackage{zxjatype}      # XeLaTeX で日本語の標準的な組版を行う
-  - \usepackage[ipa]{zxjafont} # IPAフォントを使う
   - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
 output:
+  word_document:
+    fig_caption: true          # 図キャプション作成
   pdf_document:
     # toc: true                # 目次作成
     number_sections: true      # 章番号作成
@@ -18,32 +17,34 @@ output:
     keep_tex: yes              # TeXソースを残す
   html_document:
     df_print: paged            # データフレームをページ対応表示する
-  word_document:
-    fig_caption: true          # 図キャプション作成
-lang: ja                       # 言語環境を指定
-# フォントを個別に指定することもできるが、zxjafontを使うことにした
-# mainfont: IPAPGothic
-# monofont: IPAGothic
-# mainfont: Meiryo
-# monofont: Meiryo UI
-#mainfont: "VL PGothic"
-#monofont: "VL Gothic"
+documentclass: bxjsreport
+classoption: xelatex,ja=standard
+geometry: no
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=TRUE)
-# knitr::opts_chunk$set(fig.pos='H')
-# knitr::opts_chunk$set(setHook(packageEvent("grDevices", "onLoad"), function(...)grDevices::pdf.options(family="Japan1")))
-
+library(knitr)
 library(ggpubr)
 library(tidyverse)
 library(broom)
 
+# グラフ中の日本語の文字化け対策
+#   出力フォーマットがPDF(TeX)の場合のみ実行される
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") %in% c("beamer", "latex")) {
+  options(device = function(file, width = 7, height = 7, ...) {
+    cairo_pdf(tempfile(), width = width, height = height, ...)
+  })
+  knitr::opts_chunk$set(dev="cairo_pdf", dev.args=list(family="VL Gothic"))
+}
+
+# Rコード部の設定
+knitr::opts_chunk$set(echo = T, fig.align="center", warning = F)
+
 # ggplotグラフで日本語を使えるようにする
-old <- theme_set(theme_gray(base_family = "Japan1Ryumin"))
+old <- theme_set(theme_gray(base_family = "VL Gothic"))
 
 # baseグラフで日本語を使えるようにする
-par(family = "Japan1Ryumin")
+par(family = "VL Gothic")
 
 # 表出力用に、数値の有効桁数を限定する
 options(digits = 5)
@@ -142,7 +143,7 @@ lm_coef <- iris_long %>%
   summarise(list(lm(Length ~ Width) %>% tidy())) %>% 
   unnest()
 ```
-```{r, echo=FALSE, fig.height=2.2, fig.width=5, fig.cap="線形モデルの結果を確認する"}
+```{r, echo=FALSE, fig.height=2, fig.width=5.5, fig.cap="線形モデルの結果を確認する"}
 lm_coef %>% ggtexttable(rows = NULL, theme = ggpubr::ttheme("mBlue")) %>% 
   table_cell_bg(color = "red", linewidth = 2, column = 3, row = 3) %>%
   table_cell_bg(color = "red", linewidth = 2, column = 3, row = 5) %>% 
@@ -196,7 +197,7 @@ lm_resid <- iris_long %>%
 
 lm_resid %>% 
   ggplot(aes(Width, .resid)) + 
-  geom_point() + 
+  geom_point(alpha = 0.4) + 
   facet_wrap(~ Species, scales = "free_x")
 
 lm_resid %>% 
