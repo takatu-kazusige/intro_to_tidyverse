@@ -7,8 +7,6 @@ header-includes:               # LaTeXの設定
   - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
   - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
 output:
-  word_document:
-    fig_caption: true          # 図キャプション作成
   pdf_document:
     # toc: true                # 目次作成
     number_sections: true      # 章番号作成
@@ -17,6 +15,8 @@ output:
     keep_tex: yes              # TeXソースを残す
   html_document:
     df_print: paged            # データフレームをページ対応表示する
+  word_document:
+    fig_caption: true          # 図キャプション作成
 documentclass: bxjsarticle
 classoption: xelatex,ja=standard
 geometry: no
