@@ -7,6 +7,8 @@ header-includes:               # LaTeXの設定
   - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
   - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
 output:
+  word_document:
+    fig_caption: true          # 図キャプション作成
   pdf_document:
     # toc: true                # 目次作成
     number_sections: true      # 章番号作成
@@ -15,8 +17,6 @@ output:
     keep_tex: yes              # TeXソースを残す
   html_document:
     df_print: paged            # データフレームをページ対応表示する
-  word_document:
-    fig_caption: true          # 図キャプション作成
 documentclass: bxjsarticle
 classoption: xelatex,ja=standard
 geometry: no
@@ -53,8 +53,11 @@ options(digits = 5)
 # データ分析プロセスは探索的
 
 実験データ分析は、探索的なプロセスです。
-1回データ処理して終了することはあまりなく、多くの場合は仮説→検証を繰り返して適切な結果を得ることができます。
-ここではRの可視化処理を使って、その簡単な例を示します。
+1回データ処理して終了することはあまりなく、多くの場合は仮説→検証を繰り返して適切な結果を得ることができます。[^1]
+ここではRの可視化処理を使って、その簡単な例を示します。[^2]
+
+[^1]:多角的な視点でデータ分析することは重要ですが、ツールの支援がなければ大きな負担になってしまいます。
+[^2]:ここでは、考え方を大まかに理解してください。この内容をすべて使えるようになったらこのコースは終了です。
 
 ![探索的データ分析](data_analysis_process.png)
 
@@ -100,7 +103,7 @@ iris_long %>%
 	labs(x = "幅(cm)", y = "長さ(cm)", color = "部位")
 ```
 
-# 仮説その1
+# モデル化する（仮説1）
 
 もしかすると、長さと幅の関係は花弁とガクで共通と考えたほうがいいのかもしれません。
 確認してみましょう。
@@ -117,7 +120,7 @@ iris_long %>%
 よい相関があるので、仮説は妥当だったようです。
 更に見てみると、近似直線の傾きがどれも似ているようです。
 
-# 仮説その2
+# モデル化する（仮説2）
 
 長さと幅の傾きは種が異なっても共通かもしれません。
 確認してみましょう。
@@ -184,7 +187,7 @@ lm_coef_ci <- iris_long %>%
 lm_coef_ci %>% ggtexttable(rows = NULL, theme = ggpubr::ttheme("mBlue"))
 ```
 
-# 線形モデルの妥当性確認
+# 線形モデルの妥当性を確認する
 
 直線回帰が適切に行えているのか、残差の分布を確認してみましょう。
 説明変数（Width）に対して残差のバラツキはほぼ均等のようですし、残差の分布も偏っていないようなので、問題ないでしょう。
