@@ -1,0 +1,189 @@
+---
+title: "Rによる探索的データ分析入門 - 可視化　演習"
+author: "発電基盤開発課　高津一誠"
+date: "2018年10月12日"
+header-includes:               # LaTeXの設定
+  - \usepackage{float}         # 図の位置を指定する方法を用意する
+  - \usepackage{placeins}      # \FloatBarrierで図の動ける範囲を限定
+  - \floatplacement{figure}{H} # H:図の位置を固定、h:おおよそ固定
+output:
+  pdf_document:
+    # toc: true                # 目次作成
+    number_sections: true      # 章番号作成
+    fig_caption: true          # 図キャプション作成
+    latex_engine: xelatex      # TeX種類を指定
+    keep_tex: yes              # TeXソースを残す
+  html_document:
+    df_print: paged            # データフレームをページ対応表示する
+  word_document:
+    fig_caption: true          # 図キャプション作成
+documentclass: bxjsarticle
+classoption: xelatex,ja=standard
+geometry: no
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(ggpubr)
+library(tidyverse)
+library(broom)
+
+# グラフ中の日本語の文字化け対策
+#   出力フォーマットがPDF(TeX)の場合のみ実行される
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") %in% c("beamer", "latex")) {
+  options(device = function(file, width = 7, height = 7, ...) {
+    cairo_pdf(tempfile(), width = width, height = height, ...)
+  })
+  knitr::opts_chunk$set(dev="cairo_pdf", dev.args=list(family="VL Gothic"))
+}
+
+# Rコード部の設定
+knitr::opts_chunk$set(echo = T, fig.align="center", warning = F)
+
+# ggplotグラフで日本語を使えるようにする
+old <- theme_set(theme_gray(base_family = "VL Gothic"))
+
+# baseグラフで日本語を使えるようにする
+par(family = "VL Gothic")
+
+# 表出力用に、数値の有効桁数を限定する
+options(digits = 5)
+```
+
+# 演習
+前回勉強したRによる可視化を使って、データを分析してみましょう。  
+Rに組み込まれている、`diamonds`データセットを使ってデータ分析をしてください。
+`diamonds`はダイヤモンドの品質と価格を格納したデータで、前回の`iris`と同じように`tidyverse`パッケージをロードすると使えるようになります。
+
+
+```{r echo=TRUE, message=FALSE}
+library(tidyverse)
+
+diamonds
+```
+
+変数の説明は以下のとおりです。
+
+:diamondデータセット
+
+|データ列(変数) |説明             |
+|:--------------|:----------------|
+|carat          |重さ(カラット)   |
+|cut            |カット等級       |
+|color          |色               |
+|clarity        |透明度           |
+|x              |長さ(mm)         |
+|y              |幅(mm)           |
+|z              |深さ(mm)         |
+|depth          |深さ比(z/(x+y)/2)|
+|table          |上面幅/最大幅    |
+
+
+## 演習1
+ダイヤモンドのカラット数と価格には、どのような関係があるでしょうか？
+グラフを描いて調べてください。
+
+
+## 演習2
+カラット数と価格の関係は、カット等級によって変化するでしょうか？
+カット等級ごとのサブグラフを描いて調べてください。
+
+```{r echo=FALSE, results='asis', eval=(knitr::opts_chunk$get('rmarkdown.pandoc.to') == 'latex')}
+cat('\\pagebreak')
+```
+
+# 演習の回答
+
+## 演習1
+2つの変数の相関を視覚的に確認するには散布図を使うのが一般的です。
+早速描いてみましょう。
+
+```{r fig.cap="演習1：散布図"}
+diamonds %>% ggplot(aes(x = price, y = carat)) + 
+  geom_point()
+```
+
+カラット数が大きくなると価格も大きくなる傾向があり、相関はありそうです。
+ただデータ数が50,000以上あるので点が重なってしまい、どこに多くのデータが分布しているのかが分からなくなっています。
+そこで少し工夫してみましょう。
+
+- 点を半透明にする  
+グラフ属性`alpha`に値を指定して透明度を変化させることができます。
+ここではデータを割り当てるのではなく固定値にするので、`aes()`の中でなく直接指定します。
+    ```{r fig.cap="演習1：オーバープロット対策1"}
+    diamonds %>% ggplot(aes(x = price, y = carat)) + geom_point(alpha = 0.1)
+    ```
+
+- 2次元ヒストグラム  
+おおまかな分布を確認したいなら、先ほど勉強した2次元ヒストグラムを使うと分かりやすくなります。
+    ```{r fig.cap="演習1：オーバープロット対策2"}
+    diamonds %>% ggplot(aes(x = price, y = carat)) + geom_bin2d()
+    ```
+
+以降では、2次元ヒストグラムを使ってプロットすることにします。  
+
+では、カラット数と価格の関係をより詳しく見てみましょう。  
+
+カラット数と価格が比例関係にないので、直線近似でモデル化しても関係を明確にできません。
+
+```{r fig.cap="演習1：直線近似モデル"}
+diamonds %>% ggplot(aes(x = price, y = carat)) + 
+  geom_bin2d() +
+  geom_smooth(method = "lm", color = "red")
+```
+
+多項式近似でモデル化すると、データが多く分布している箇所を通る近似曲線を描くことができました。
+しかし、価格が高くなるにつれてカラット数のバラつきが大きくなることをモデル化できていないため、これも不適切です。
+
+```{r fig.cap="演習1：多項式近似モデル"}
+diamonds %>% ggplot(aes(x = price, y = carat)) + 
+  geom_bin2d() +
+  geom_smooth(method = "lm", color = "red", formula = y ~ poly(x, 4, raw = T))
+```
+
+では、どのようなモデルならよいのでしょうか？  
+べき乗関数近似モデルは、変数の値によってもう一方の変数バラつきが大きくなるので試してみましょう。
+このモデルは対数変換すると直線近似モデルと同じになるので両対数グラフを描いてみます。  
+
+RではXやYのスケールの設定もレイヤーとして追加するので、以下のように記述します。
+
+```{r fig.cap="演習1：直線近似モデル"}
+diamonds %>% ggplot(aes(x = price, y = carat)) + 
+  geom_bin2d() +
+  geom_smooth(method = "lm", color = "red") +
+  scale_x_log10() + scale_y_log10()
+```
+
+グラフを見るとうまくモデル化できているようです。  
+最後にモデル式を以下に示します。誤差項がどのようにモデル化されているかに着目してください。
+
+: モデル式
+
+|近似モデル                    |モデル式                                    |
+|:-----------------------------|:-------------------------------------------|
+|直線近似                      |$y_i = ax_i + b + \epsilon_i$               |
+|n次多項式近似                 |$y_i = \sum_{j=0}^n a_jx^j_i + \epsilon_i$  |
+|べき乗関数近似                |$y_i = ax^b_ie^{\epsilon_i}$                |
+|べき乗関数近似の対数変換モデル|$\log y_i = \log a + b\log x_i + \epsilon_i$|
+
+
+## 演習2の回答
+演習1のグラフにサブグラフのレイヤーを追加するのですが、同じことを繰返し書くのは面倒です。
+特に後で修正が必要になったときに修正し忘れることもあります。
+そこで、以下のように共通の部分まで作ったグラフに名前を付けて保存することで使いまわすことができます。
+
+```{r fig.show='hide'}
+p <- diamonds %>% ggplot(aes(x = price, y = carat)) + 
+  geom_bin2d() +
+  geom_smooth(method = "lm", color = "red") +
+  scale_x_log10() + scale_y_log10()
+print(p)
+```
+
+```{r fig.cap="演習2：カット等級の影響"}
+p + facet_wrap(~ cut)
+```
+
+グラフを見るとカットの影響はほとんどなく、どのサブグラフでも同じような関係になっていることが分かります。
+
+
