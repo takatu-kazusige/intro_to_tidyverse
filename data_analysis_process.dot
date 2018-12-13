@@ -9,11 +9,11 @@ digraph data_analysis {
       subgraph cluster0 {
         label = "探索的プロセス"
         labelloc = "b"
-        データ変換 -> 可視化 -> モデル化 -> データ変換
+        可視化 -> データ変換 -> モデル化 -> 可視化
       }
       
       データ読込 -> データ整形
-      データ整形-> データ変換
+      データ整形-> 可視化
       モデル化 -> コミュニケーション [ltail = cluster0]
 
 }
