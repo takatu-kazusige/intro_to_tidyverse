@@ -333,7 +333,9 @@ Rでは、データが欠損した場合に特別な値`NA`[^5]を使います�
     すべての変数に欠損がない場合しか、データを分析する意味がない場合に使います。
     
     ```{r, fig.cap="欠損値の扱いの例1"}
-    data <- tibble(time = 1:100, a = c(NA, NA, rnorm(98)), b = c(1:50, NA, 52:100) * 0.1 + 20)
+    data <- tibble(time = 1:100, 
+                   a = c(NA, NA, rnorm(98)), 
+                   b = c(1:50, NA, 52:100) * 0.1 + 20)
     
     data %>% drop_na() %>% summarise_at("a", funs(mean, sd))
     ```
@@ -356,7 +358,8 @@ Rでは、データが欠損した場合に特別な値`NA`[^5]を使います�
     ```{r, fig.cap="欠損値の扱いの例3", fig.height=3, fig.width=4}
     library(zoo)
     data %>% ggplot(aes(x = time, y = b)) + geom_path() + geom_point()
-    data %>% mutate(b = b %>% na.approx(time)) %>% ggplot(aes(x = time, y = b)) + geom_path() + geom_point()
+    data %>% mutate(b = b %>% na.approx(time)) %>% 
+      ggplot(aes(x = time, y = b)) + geom_path() + geom_point()
     ```
 
 ## グループ化
